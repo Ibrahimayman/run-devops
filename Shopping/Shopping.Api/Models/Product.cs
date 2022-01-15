@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace Shopping.Api.Models
 {
     public class Product
     {
-        public int Id { get; set; }
+        [BsonId]
+        [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+        public string Id { get; set; }
 
         public string Name { get; set; }
 

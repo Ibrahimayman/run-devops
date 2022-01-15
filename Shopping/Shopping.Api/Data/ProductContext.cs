@@ -1,4 +1,6 @@
-﻿using Shopping.Api.Models;
+﻿using Microsoft.Extensions.Configuration;
+using MongoDB.Driver;
+using Shopping.Api.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,11 +8,32 @@ using System.Threading.Tasks;
 
 namespace Shopping.Api.Data
 {
-    public static class ProductContext
+    public class ProductContext
     {
-        public static readonly List<Product> Products = new List<Product>
+        public IMongoCollection<Product> products { get; }
+
+        public ProductContext(IConfiguration configuration)
         {
-            new Product()
+            MongoClient client = new MongoClient(configuration["DatabaseSettings:ConnectionString"]);
+            var databases = client.GetDatabase(configuration["DatabaseSettings:DatabaseName"]);
+            products = databases.GetCollection<Product>(configuration["DatabaseSettings:CollectionName"]);
+            SeedData(products);
+        }
+
+
+        public static void SeedData(IMongoCollection<Product> productCollection)
+        {
+            bool existProduct = productCollection.Find(p => true).Any();
+            if (!existProduct)
+            {
+                productCollection.InsertManyAsync(GetPreconfiguredProducts());
+            }
+        }
+
+        public static IEnumerable<Product> GetPreconfiguredProducts()
+        {
+            return new List<Product>() {
+           new Product()
                 {
                     Name = "IPhone X",
                     Description = "This phone is the company's biggest change to its flagship smartphone in years. It includes a borderless.",
@@ -58,6 +81,8 @@ namespace Shopping.Api.Data
                     Price = 240.00M,
                     Category = "Home Kitchen"
                 }
-        };
-       }
+           };
+        }
+
+    }
 }
